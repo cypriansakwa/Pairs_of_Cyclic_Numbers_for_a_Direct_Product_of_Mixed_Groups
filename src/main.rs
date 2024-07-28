@@ -1,77 +1,75 @@
-fn is_prime(n: u32) -> bool {
+use num::integer::gcd;
+
+// Function to check if a number is prime
+fn is_prime(n: u64) -> bool {
     if n <= 1 {
         return false;
     }
-    if n <= 3 {
-        return true;
-    }
-    if n % 2 == 0 || n % 3 == 0 {
-        return false;
-    }
-    let mut i = 5;
-    while i * i <= n {
-        if n % i == 0 || n % (i + 2) == 0 {
+    for i in 2..=((n as f64).sqrt() as u64) {
+        if n % i == 0 {
             return false;
         }
-        i += 6;
     }
     true
 }
 
-fn is_valid_m(m: u32) -> bool {
-    if m == 2 || m == 4 {
-        return true;
-    }
-
-    if m % 2 == 0 {
-        let half = m / 2;
-        if half > 1 && is_prime(half) {
-            return true;
-        }
-    }
-
-    if is_prime(m) {
-        return true;
-    }
-
-    let mut p = 3;
-    while p * p <= m {
-        if is_prime(p) {
-            let mut power = p;
-            while power <= m {
-                if power == m {
-                    return true;
-                }
-                power *= p;
+// Function to compute Euler's totient function
+fn euler_totient(n: u64) -> u64 {
+    let mut result = n;
+    let mut p = 2;
+    let mut num = n;
+    while p * p <= num {
+        if num % p == 0 {
+            while num % p == 0 {
+                num /= p;
             }
+            result -= result / p;
         }
-        p += 2;
+        p += 1;
     }
-
-    false
+    if num > 1 {
+        result -= result / num;
+    }
+    result
 }
 
-fn generate_cyclic_pairs(limit: u32) -> Vec<(u32, u32)> {
-    let mut pairs = Vec::new();
-
-    for n in 1..=limit {
-        for m in 1..=limit {
-            if is_valid_m(m) {
-                pairs.push((n, m));
-            }
+// Function to generate a vector of primes less than or equal to a given maximum
+fn generate_primes(max: u64) -> Vec<u64> {
+    let mut primes = Vec::new();
+    for num in 2..=max {
+        if is_prime(num) {
+            primes.push(num);
         }
     }
-    pairs
+    primes
+}
+
+// Function to check if (n, m) pair satisfies the condition
+fn is_valid_pair(n: u64, m: u64) -> bool {
+    let phi_m = euler_totient(m);
+    gcd(n, phi_m) == 1
 }
 
 fn main() {
-    let limit = 10; // Set the limit for n and m values
-    let pairs = generate_cyclic_pairs(limit);
-
-    for (n, m) in pairs {
-        println!("({}, {})", n, m);
+    // Define range for n
+    let n_range = (1, 10);
+    // Define maximum value for m
+    let max_m = 10;
+    
+    // Generate all primes up to max_m
+    let primes = generate_primes(max_m);
+    
+    // Iterate through all possible (n, m) pairs and print the valid ones
+    for n in n_range.0..=n_range.1 {
+        for &m in &primes {
+            if is_valid_pair(n, m) {
+                println!("Generated pair: (n, m) = ({}, {})", n, m);
+            }
+        }
     }
 }
+
+
 
 
 
